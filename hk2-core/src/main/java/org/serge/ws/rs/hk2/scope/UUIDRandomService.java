@@ -18,6 +18,7 @@ public class UUIDRandomService implements RandomService {
     public void init() {
         random = UUID.randomUUID();
     }
+
     @Override
     public Object random() {
         return random;

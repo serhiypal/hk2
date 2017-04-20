@@ -16,12 +16,9 @@ public class IntegerRandomService implements RandomService {
     private Object random;
 
     @PostConstruct
-    public void init() {
-        random = new Random().nextInt();
-    }
+    public void init() { random = new Random().nextInt(); }
+
     @Override
-    public Object random() {
-        return random;
-    }
+    public Object random() { return random; }
 
 }
