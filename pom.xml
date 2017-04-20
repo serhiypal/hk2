@@ -17,6 +17,10 @@
     <repositories>
         <repository>
             <id>central</id>
+            <layout>default</layout>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
             <url>http://repo1.maven.org/maven2/</url>
         </repository>
     </repositories>
@@ -24,6 +28,10 @@
     <pluginRepositories>
         <pluginRepository>
             <id>plugins</id>
+            <layout>default</layout>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
             <url>http://repo1.maven.org/maven2/</url>
         </pluginRepository>
     </pluginRepositories>
@@ -38,6 +46,12 @@
             <dependency>
                 <groupId>org.glassfish.hk2</groupId>
                 <artifactId>hk2-api</artifactId>
+                <version>${hk2.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.glassfish.hk2</groupId>
+                <artifactId>hk2-locator</artifactId>
                 <version>${hk2.version}</version>
             </dependency>
 
@@ -77,6 +91,7 @@
                 <groupId>org.hamcrest</groupId>
                 <artifactId>hamcrest-core</artifactId>
                 <version>1.3</version>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -87,6 +102,7 @@
             <artifactId>junit</artifactId>
         </dependency>
     </dependencies>
+
     <build>
         <pluginManagement>
             <plugins>
@@ -98,10 +114,25 @@
 
                 <plugin>
                     <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.1</version>
                     <configuration>
                         <source>1.8</source>
                         <target>1.8</target>
                     </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.glassfish.hk2</groupId>
+                    <artifactId>hk2-inhabitant-generator</artifactId>
+                    <version>${hk2.version}</version>
+                    <executions>
+                        <execution>
+                            <phase>process-classes</phase>
+                            <goals>
+                                <goal>generate-inhabitants</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                 </plugin>
             </plugins>
         </pluginManagement>
