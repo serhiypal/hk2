@@ -12,12 +12,8 @@ import org.jvnet.hk2.annotations.Service;
 @Service
 public class MultiDataExporter implements Exporter {
 
-    private IterableProvider<Storage> storages;
-
     @Inject
-    public MultiDataExporter(IterableProvider<Storage> storages) {
-        this.storages = storages;
-    }
+    private IterableProvider<Storage> storages;
 
     @Override
     public void export() {
@@ -32,9 +28,7 @@ public class MultiDataExporter implements Exporter {
 
     public List<Storage> getStorages() {
         List<Storage> dumpedStorages = new ArrayList<>();
-        for (Storage storage : storages) {
-            dumpedStorages.add(storage);
-        }
+        storages.forEach(dumpedStorages::add);
         return dumpedStorages;
     }
 

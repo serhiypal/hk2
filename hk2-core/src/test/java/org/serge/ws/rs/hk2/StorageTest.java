@@ -22,7 +22,7 @@ import static org.junit.Assert.assertTrue;
 public class StorageTest {
 
     @Test
-    public void qualifiers() throws NoSuchFieldException, IllegalAccessException {
+    public void qualifiers() {
         ServiceLocator serviceLocator = ServiceLocatorUtilities.bind(dc -> {
             dc.bind(BuilderHelper.link(OneDriveStorage.class).to(Storage.class).qualifiedBy(OneDrive.LITERAL).build());
             dc.bind(BuilderHelper.link(S3Storage.class).to(Storage.class).qualifiedBy(S3.LITERAL).build());
@@ -36,10 +36,10 @@ public class StorageTest {
     }
 
     @Test
-    public void multi() throws NoSuchFieldException, IllegalAccessException {
+    public void multiExporter() {
         ServiceLocator serviceLocator = ServiceLocatorUtilities.bind(dc -> {
-            dc.bind(BuilderHelper.link(OneDriveStorage.class).to(Storage.class).qualifiedBy(OneDrive.LITERAL).build());
-            dc.bind(BuilderHelper.link(S3Storage.class).to(Storage.class).qualifiedBy(S3.LITERAL).build());
+            dc.bind(BuilderHelper.link(OneDriveStorage.class).to(Storage.class).build());
+            dc.bind(BuilderHelper.link(S3Storage.class).to(Storage.class).build());
             dc.bind(BuilderHelper.link(MultiDataExporter.class).to(Exporter.class).build());
         });
         Exporter exporter = serviceLocator.getService(Exporter.class);
