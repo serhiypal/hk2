@@ -5,6 +5,7 @@ import java.io.InputStream;
 
 import org.jvnet.hk2.annotations.Service;
 
+@OneDrive
 @Service
 public class OneDriveStorage implements Storage {
 

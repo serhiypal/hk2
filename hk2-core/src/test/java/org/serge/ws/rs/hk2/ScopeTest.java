@@ -3,15 +3,14 @@ package org.serge.ws.rs.hk2;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.hk2.api.ServiceLocatorFactory;
 import org.glassfish.hk2.utilities.ServiceLocatorUtilities;
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.serge.ws.rs.hk2.scope.IntegerRandomService;
@@ -25,14 +24,14 @@ public class ScopeTest {
     private static ServiceLocator locator;
 
     @BeforeClass
-    public void setUp() {
+    public static void setUp() {
         locator = ServiceLocatorFactory.getInstance().create("hk2");
         ServiceLocatorUtilities.enablePerThreadScope(locator);
         ServiceLocatorUtilities.addClasses(locator, UUIDRandomService.class, IntegerRandomService.class);
     }
 
     @AfterClass
-    public void tearDown() {
+    public static void tearDown() {
         locator.shutdown();
     }
 
@@ -62,9 +61,19 @@ public class ScopeTest {
                          .map(i -> Executors.newSingleThreadExecutor()
                                             .submit(() -> locator.getService(RandomService.class, "UUIDRandomService")
                                                                  .random()))
+                         .map(this::getUninterruptibly)
                          .filter(Objects::nonNull)
                          .collect(Collectors.toSet());
         assertEquals("Wrong size", 3, test3.size());
+    }
+
+    private <T> T getUninterruptibly(Future<T> future) {
+        try {
+            return future.get();
+        } catch (Exception e) {
+            return null;
+        }
+
     }
 
 }

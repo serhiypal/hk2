@@ -1,11 +1,11 @@
 package org.serge.ws.rs.hk2.qualifier;
 
-import org.glassfish.hk2.api.AnnotationLiteral;
+import javax.inject.Qualifier;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
+@Qualifier
+@Retention(RetentionPolicy.RUNTIME)
 public @interface S3 {
-
-    class OneDriveImpl extends AnnotationLiteral<S3> implements S3{}
-
-    S3 LITERAL = new OneDriveImpl();
 
 }

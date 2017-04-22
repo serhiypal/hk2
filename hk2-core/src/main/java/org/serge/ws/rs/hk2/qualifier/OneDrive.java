@@ -1,11 +1,11 @@
 package org.serge.ws.rs.hk2.qualifier;
 
-import org.glassfish.hk2.api.AnnotationLiteral;
+import javax.inject.Qualifier;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
+@Qualifier
+@Retention(RetentionPolicy.RUNTIME)
 public @interface OneDrive {
-
-    class OneDriveImpl extends AnnotationLiteral<OneDrive> implements OneDrive{}
-
-    OneDrive LITERAL = new OneDriveImpl();
 
 }

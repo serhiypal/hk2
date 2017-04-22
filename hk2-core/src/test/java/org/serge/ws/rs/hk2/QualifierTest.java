@@ -2,7 +2,9 @@ package org.serge.ws.rs.hk2;
 
 import java.util.List;
 
+import org.glassfish.hk2.api.AnnotationLiteral;
 import org.glassfish.hk2.api.ServiceLocator;
+import org.glassfish.hk2.api.ServiceLocatorFactory;
 import org.glassfish.hk2.utilities.BuilderHelper;
 import org.glassfish.hk2.utilities.ServiceLocatorUtilities;
 import org.junit.Test;
@@ -15,24 +17,44 @@ import org.serge.ws.rs.hk2.qualifier.S3;
 import org.serge.ws.rs.hk2.qualifier.S3Storage;
 import org.serge.ws.rs.hk2.qualifier.Storage;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-public class StorageTest {
+public class QualifierTest {
 
     @Test
     public void qualifiers() {
-        ServiceLocator serviceLocator = ServiceLocatorUtilities.bind(dc -> {
-            dc.bind(BuilderHelper.link(OneDriveStorage.class).to(Storage.class).qualifiedBy(OneDrive.LITERAL).build());
-            dc.bind(BuilderHelper.link(S3Storage.class).to(Storage.class).qualifiedBy(S3.LITERAL).build());
-            dc.bind(BuilderHelper.link(DataExporter.class).to(Exporter.class).build());
-        });
+        ServiceLocator serviceLocator = ServiceLocatorFactory.getInstance().create("hk2");
+        ServiceLocatorUtilities.addClasses(serviceLocator, OneDriveStorage.class, S3Storage.class, DataExporter.class);
         Exporter exporter = serviceLocator.getService(Exporter.class);
-        exporter.export(); // prints "Storing in OneDrive: helloWorld.txt"
+        exporter.export(); // prints "Storing in S3: helloWorld.txt"
 
         assertTrue("Wrong instance", serviceLocator.getService(DataExporter.class).getStorage() instanceof OneDriveStorage);
         serviceLocator.shutdown();
+    }
+
+    @Test
+    public void lookup() {
+        ServiceLocator serviceLocator = ServiceLocatorFactory.getInstance()
+                                                             .create("hk2");
+        ServiceLocatorUtilities.addClasses(serviceLocator,
+                                           OneDriveStorage.class,
+                                           S3Storage.class,
+                                           DataExporter.class);
+        assertThat(serviceLocator.getService(Storage.class), instanceOf(OneDriveStorage.class));
+
+        class S3Literal extends AnnotationLiteral<S3> implements S3 {}
+        class OneDriveLiteral extends AnnotationLiteral<OneDrive> implements OneDrive {}
+
+        assertThat(serviceLocator.getService(Storage.class,
+                                             new OneDriveLiteral()),
+                   instanceOf(OneDriveStorage.class));
+        assertThat(serviceLocator.getService(Storage.class,
+                                             new S3Literal()),
+                   instanceOf(S3Storage.class));
     }
 
     @Test
