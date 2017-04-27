@@ -1,4 +1,4 @@
-package org.serge.ws.rs.hk2.qualifier;
+package org.serge.ws.rs.hk2.profile;
 
 import javax.inject.Inject;
 import java.io.ByteArrayInputStream;
@@ -9,7 +9,6 @@ import org.jvnet.hk2.annotations.Service;
 public class DataExporter implements Exporter {
 
     @Inject
-    @OneDrive
     private Storage storage;
 
     @Override

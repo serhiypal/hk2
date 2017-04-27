@@ -1,11 +1,11 @@
-package org.serge.ws.rs.hk2.qualifier;
+package org.serge.ws.rs.hk2.profile;
 
 import java.io.InputStream;
 
 import org.jvnet.hk2.annotations.Service;
 
-@OneDrive
 @Service
+@Profile("onedrive")
 public class OneDriveStorage implements Storage {
 
     @Override

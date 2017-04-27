@@ -2,7 +2,6 @@ package org.serge.ws.rs.hk2.qualifier;
 
 import javax.inject.Inject;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,13 +16,9 @@ public class MultiDataExporter implements Exporter {
 
     @Override
     public void export() {
-        storages.forEach(storage -> {
-            try {
-                storage.persist(new ByteArrayInputStream("Hello, world!".getBytes()), "helloWorld.txt");
-            } catch (IOException e) {
-                System.err.println("Skipping storing, error occurred: " + e.getMessage());
-            }
-        });
+        storages.forEach(storage ->
+            storage.persist(new ByteArrayInputStream("Hello, world!".getBytes()), "helloWorld.txt")
+        );
     }
 
     public List<Storage> getStorages() {

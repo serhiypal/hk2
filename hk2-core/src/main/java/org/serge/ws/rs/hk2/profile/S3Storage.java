@@ -1,11 +1,11 @@
-package org.serge.ws.rs.hk2.qualifier;
+package org.serge.ws.rs.hk2.profile;
 
 import java.io.InputStream;
 
 import org.jvnet.hk2.annotations.Service;
 
-@S3
 @Service
+@Profile({ "s3", "default" })
 public class S3Storage implements Storage {
 
     @Override
