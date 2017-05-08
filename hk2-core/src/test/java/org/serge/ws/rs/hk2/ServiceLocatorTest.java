@@ -8,11 +8,11 @@ import org.glassfish.hk2.api.ServiceLocatorFactory;
 import org.glassfish.hk2.extras.ExtrasUtilities;
 import org.glassfish.hk2.utilities.ServiceLocatorUtilities;
 import org.junit.Test;
-import org.serge.ws.rs.hk2.locator.nesting.SomeContract;
-import org.serge.ws.rs.hk2.locator.nesting.SomeService1;
-import org.serge.ws.rs.hk2.locator.nesting.SomeService2;
-import org.serge.ws.rs.hk2.locator.nesting.SomeService3;
-import org.serge.ws.rs.hk2.locator.nesting.SomeService4;
+import org.serge.ws.rs.hk2.locator.SomeContract;
+import org.serge.ws.rs.hk2.locator.SomeService1;
+import org.serge.ws.rs.hk2.locator.SomeService2;
+import org.serge.ws.rs.hk2.locator.SomeService3;
+import org.serge.ws.rs.hk2.locator.SomeService4;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;

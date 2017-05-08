@@ -1,4 +1,4 @@
-package org.serge.ws.rs.hk2.locator.nesting;
+package org.serge.ws.rs.hk2.locator;
 
 import org.jvnet.hk2.annotations.Contract;
 
