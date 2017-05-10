@@ -1,7 +1,9 @@
 package org.serge.ws.rs.hk2.aop2;
 
 import org.glassfish.hk2.extras.interception.Intercepted;
+import org.jvnet.hk2.annotations.Service;
 
+@Service
 @Intercepted
 public class SleepService {
 

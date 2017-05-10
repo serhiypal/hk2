@@ -1,5 +1,8 @@
 package org.serge.ws.rs.hk2.aop;
 
+import org.jvnet.hk2.annotations.Service;
+
+@Service
 public class SleepService {
 
     @Timed

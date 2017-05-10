@@ -4,7 +4,9 @@ import javax.inject.Singleton;
 
 import org.glassfish.hk2.api.messaging.MessageReceiver;
 import org.glassfish.hk2.api.messaging.SubscribeTo;
+import org.jvnet.hk2.annotations.Service;
 
+@Service
 @Singleton
 @MessageReceiver
 public class Subscriber {
