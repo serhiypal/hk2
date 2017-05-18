@@ -7,7 +7,9 @@ import org.glassfish.hk2.api.Injectee;
 import org.glassfish.hk2.api.InjectionResolver;
 import org.glassfish.hk2.api.ServiceHandle;
 import org.glassfish.hk2.api.ServiceLocator;
+import org.jvnet.hk2.annotations.Service;
 
+@Service
 public class DecryptResolver implements InjectionResolver<Decrypt> {
 
     private ServiceLocator serviceLocator;
