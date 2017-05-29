@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="org.springframework.beans.factory.config.CustomScopeConfigurer">
+        <property name="scopes">
+            <map>
+                <entry key="hk2">
+                    <bean class="org.jvnet.hk2.spring.bridge.api.SpringScopeImpl" >
+                        <property name="serviceLocator" ref="hk2" />
+                    </bean>
+                </entry>
+            </map>
+        </property>
+    </bean>
+    <bean id="org.serge.ws.rs.hk2.service.TracingService" class="org.serge.ws.rs.hk2.service.TracingService" scope="hk2" lazy-init="true" />
+    <bean id="org.serge.ws.rs.hk2.spring.HK2ServiceConsumer" class="org.serge.ws.rs.hk2.spring.HK2ServiceConsumer" lazy-init="true">
+        <constructor-arg>
+            <ref bean="org.serge.ws.rs.hk2.service.TracingService" />
+        </constructor-arg>
+    </bean>
+</beans>
