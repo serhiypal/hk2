@@ -1,6 +1,5 @@
 package org.serge.ws.rs.hk2.jersey;
 
-import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.ws.rs.core.Feature;
 import javax.ws.rs.core.FeatureContext;
@@ -11,8 +10,9 @@ import org.glassfish.hk2.extras.ExtrasUtilities;
 import org.glassfish.hk2.utilities.ServiceLocatorUtilities;
 
 @Provider
-@Priority(1)
 public class BridgeFeature implements Feature {
+
+    public static final String SERVICE_LOCATOR = BridgeFeature.class.getName() + ".serviceLocator";
 
     private final ServiceLocator locator;
 
@@ -26,6 +26,7 @@ public class BridgeFeature implements Feature {
         ServiceLocator bridgeLocator = ServiceLocatorUtilities.createAndPopulateServiceLocator();
         ExtrasUtilities.bridgeServiceLocator(locator, bridgeLocator);
         ExtrasUtilities.bridgeServiceLocator(bridgeLocator, locator);
+        context.property(SERVICE_LOCATOR, bridgeLocator);
         return true;
     }
 }

@@ -1,6 +1,5 @@
 package org.serge.ws.rs.hk2.jersey;
 
-import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.ws.rs.core.Feature;
 import javax.ws.rs.core.FeatureContext;
@@ -9,6 +8,7 @@ import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.Optional;
 
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.hk2.utilities.BuilderHelper;
@@ -28,7 +28,6 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Provider
-@Priority(2)
 public class SpringFeature implements Feature {
 
     public static final String PACKAGES_PROPERTY = SpringFeature.class + ".packages";
@@ -66,6 +65,10 @@ public class SpringFeature implements Feature {
         }
         log.info("{} configured for Spring", Arrays.toString(scanPackages));
         applicationContext.scan(scanPackages);
+        Optional.ofNullable(context.getConfiguration().getProperty(BridgeFeature.SERVICE_LOCATOR))
+                .filter(ServiceLocator.class::isInstance)
+                .map(ServiceLocator.class::cast)
+                .ifPresent(serviceLocator -> spring2Hk2Bridge(applicationContext, serviceLocator));
         registerHK2InSpring(applicationContext, serviceLocator);
         applicationContext.refresh();
         applicationContext.start();
@@ -78,9 +81,7 @@ public class SpringFeature implements Feature {
      * @param locator to register in Spring
      */
     private static void registerHK2InSpring(GenericApplicationContext applicationContext, ServiceLocator locator) {
-        SpringBridge.getSpringBridge().initializeSpringBridge(locator);
-        SpringIntoHK2Bridge spring2HK2 = locator.getService(SpringIntoHK2Bridge.class);
-        spring2HK2.bridgeSpringBeanFactory(applicationContext);
+        spring2Hk2Bridge(applicationContext, locator);
 
         ConfigurableListableBeanFactory beanFactory = applicationContext.getBeanFactory();
         SpringScopeImpl springScope = new SpringScopeImpl();
@@ -99,10 +100,28 @@ public class SpringFeature implements Feature {
                            contracts[0],
                            BeanDefinitionBuilder.genericBeanDefinition(serviceHandle.getActiveDescriptor().getImplementationClass())
                                                 .setScope("hk2")
+                                                .setLazyInit(serviceHandle.getActiveDescriptor()
+                                                                          .getQualifierAnnotations()
+                                                                          .stream()
+                                                                          .filter(Spring.class::isInstance)
+                                                                          .map(Spring.class::cast)
+                                                                          .findAny()
+                                                                          .map(Spring::lazy)
+                                                                          .orElse(false))
                                                 .getBeanDefinition());
                    Arrays.stream(contracts, 1, contracts.length)
                          .forEach(c -> applicationContext.registerAlias(mainContract, c));
                }
         );
+    }
+
+    /**
+     * Initializing bridge for ServiceLocator
+     * @param applicationContext Spring container
+     * @param locator HK2 container
+     */
+    private static void spring2Hk2Bridge(GenericApplicationContext applicationContext, ServiceLocator locator) {
+        SpringBridge.getSpringBridge().initializeSpringBridge(locator);
+        locator.getService(SpringIntoHK2Bridge.class).bridgeSpringBeanFactory(applicationContext);
     }
 }
