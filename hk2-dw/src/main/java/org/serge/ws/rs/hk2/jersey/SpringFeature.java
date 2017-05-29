@@ -15,22 +15,23 @@ import org.glassfish.hk2.utilities.BuilderHelper;
 import org.jvnet.hk2.spring.bridge.api.SpringBridge;
 import org.jvnet.hk2.spring.bridge.api.SpringIntoHK2Bridge;
 import org.jvnet.hk2.spring.bridge.api.SpringScopeImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * Jersey Spring Feature to register Spring context within Jersey/HK2 context so spring can refer HK2 services
  * and HK2 - Spring beans
  */
-@Slf4j
 @Provider
 public class SpringFeature implements Feature {
 
     public static final String PACKAGES_PROPERTY = SpringFeature.class + ".packages";
+
+    private static final Logger log = LoggerFactory.getLogger(SpringFeature.class);
 
     private final AnnotationConfigApplicationContext applicationContext;
 
