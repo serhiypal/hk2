@@ -4,6 +4,7 @@ import javax.inject.Inject;
 import javax.ws.rs.core.Feature;
 import javax.ws.rs.core.FeatureContext;
 import javax.ws.rs.ext.Provider;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
@@ -85,11 +86,21 @@ public class SpringFeature implements Feature {
         beanFactory.registerScope("hk2", springScope);
 
         locator.getAllServiceHandles(BuilderHelper.createTokenizedFilter(String.format(";qualifier=%s", Spring.class.getName())))
-               .forEach(serviceHandle -> applicationContext.registerBeanDefinition(
-                       serviceHandle.getActiveDescriptor().getContractTypes().iterator().next().getTypeName(),
-                       BeanDefinitionBuilder.genericBeanDefinition(serviceHandle.getActiveDescriptor().getImplementationClass())
-                                            .setScope("hk2")
-                                            .getBeanDefinition())
+               .forEach(serviceHandle -> {
+                   String[] contracts = serviceHandle.getActiveDescriptor()
+                                                     .getContractTypes()
+                                                     .stream()
+                                                     .map(Type::getTypeName)
+                                                     .toArray(String[]::new);
+                   String mainContract = contracts[0];
+                   applicationContext.registerBeanDefinition(
+                           contracts[0],
+                           BeanDefinitionBuilder.genericBeanDefinition(serviceHandle.getActiveDescriptor().getImplementationClass())
+                                                .setScope("hk2")
+                                                .getBeanDefinition());
+                   Arrays.stream(contracts, 1, contracts.length)
+                         .forEach(c -> applicationContext.registerAlias(mainContract, c));
+               }
         );
     }
 }
