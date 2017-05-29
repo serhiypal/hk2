@@ -1,5 +1,6 @@
-package org.serge.ws.rs.hk2.service;
+package org.serge.ws.rs.hk2.jersey;
 
+import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.ws.rs.core.Feature;
 import javax.ws.rs.core.FeatureContext;
@@ -10,6 +11,7 @@ import org.glassfish.hk2.extras.ExtrasUtilities;
 import org.glassfish.hk2.utilities.ServiceLocatorUtilities;
 
 @Provider
+@Priority(1)
 public class BridgeFeature implements Feature {
 
     private final ServiceLocator locator;

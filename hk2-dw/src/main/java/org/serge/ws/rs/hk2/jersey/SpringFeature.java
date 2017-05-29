@@ -1,5 +1,6 @@
 package org.serge.ws.rs.hk2.jersey;
 
+import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.ws.rs.core.Feature;
 import javax.ws.rs.core.FeatureContext;
@@ -27,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Provider
+@Priority(2)
 public class SpringFeature implements Feature {
 
     public static final String PACKAGES_PROPERTY = SpringFeature.class + ".packages";
