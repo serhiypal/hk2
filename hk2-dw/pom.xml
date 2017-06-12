@@ -43,6 +43,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.glassfish.jersey.ext</groupId>
+            <artifactId>jersey-spring4</artifactId>
+            <version>RELEASE</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.glassfish.hk2</groupId>
             <artifactId>guice-bridge</artifactId>
         </dependency>

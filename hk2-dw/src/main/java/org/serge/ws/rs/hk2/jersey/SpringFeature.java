@@ -4,7 +4,6 @@ import javax.inject.Inject;
 import javax.ws.rs.core.Feature;
 import javax.ws.rs.core.FeatureContext;
 import javax.ws.rs.ext.Provider;
-import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
@@ -92,23 +91,14 @@ public class SpringFeature implements Feature {
         locator.getAllServiceHandles(BuilderHelper.createTokenizedFilter(String.format(";qualifier=%s", Spring.class.getName())))
                .forEach(serviceHandle -> {
                    String[] contracts = serviceHandle.getActiveDescriptor()
-                                                     .getContractTypes()
-                                                     .stream()
-                                                     .map(Type::getTypeName)
-                                                     .toArray(String[]::new);
+                                                     .getAdvertisedContracts()
+                                                     .toArray(new String[0]);
                    String mainContract = contracts[0];
                    applicationContext.registerBeanDefinition(
                            contracts[0],
-                           BeanDefinitionBuilder.genericBeanDefinition(serviceHandle.getActiveDescriptor().getImplementationClass())
+                           BeanDefinitionBuilder.genericBeanDefinition(serviceHandle.getActiveDescriptor().getImplementation())
                                                 .setScope("hk2")
-                                                .setLazyInit(serviceHandle.getActiveDescriptor()
-                                                                          .getQualifierAnnotations()
-                                                                          .stream()
-                                                                          .filter(Spring.class::isInstance)
-                                                                          .map(Spring.class::cast)
-                                                                          .findAny()
-                                                                          .map(Spring::lazy)
-                                                                          .orElse(false))
+                                                .setLazyInit(isLazy(serviceHandle.getActiveDescriptor().getImplementation()))
                                                 .getBeanDefinition());
                    Arrays.stream(contracts, 1, contracts.length)
                          .forEach(c -> applicationContext.registerAlias(mainContract, c));
@@ -124,5 +114,15 @@ public class SpringFeature implements Feature {
     private static void spring2Hk2Bridge(GenericApplicationContext applicationContext, ServiceLocator locator) {
         SpringBridge.getSpringBridge().initializeSpringBridge(locator);
         locator.getService(SpringIntoHK2Bridge.class).bridgeSpringBeanFactory(applicationContext);
+    }
+
+    private static boolean isLazy(String className) {
+        try {
+            Class<?> impl = Class.forName(className);
+            Spring spring = impl.getDeclaredAnnotation(Spring.class);
+            return spring != null && spring.lazy();
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
     }
 }
