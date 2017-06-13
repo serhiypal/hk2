@@ -17,4 +17,9 @@ public class TextService {
     public void print(String string) {
         System.out.println(stringService.apply(string));
     }
+
+    public StringService getStringService() {
+        return stringService;
+    }
+
 }
