@@ -12,6 +12,7 @@
     <modules>
         <module>hk2-core</module>
         <module>hk2-dw</module>
+        <module>jersey-jetty</module>
     </modules>
 
     <repositories>
@@ -37,13 +38,24 @@
     </pluginRepositories>
 
     <properties>
-        <hk2.version>2.5.0-b34</hk2.version>
         <dropwizard.version>1.0.5</dropwizard.version>
+        <hk2.version>2.5.0-b34</hk2.version>
+        <jetty.version>9.3.9.v20160517</jetty.version>
         <spring.version>4.3.6.RELEASE</spring.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-server</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-servlet</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
             <dependency>
                 <groupId>io.dropwizard</groupId>
                 <artifactId>dropwizard-bom</artifactId>
