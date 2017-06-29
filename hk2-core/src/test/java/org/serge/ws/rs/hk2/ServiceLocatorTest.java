@@ -1,6 +1,7 @@
 package org.serge.ws.rs.hk2;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.glassfish.hk2.api.ServiceHandle;
 import org.glassfish.hk2.api.ServiceLocator;
@@ -13,9 +14,13 @@ import org.serge.ws.rs.hk2.locator.SomeService1;
 import org.serge.ws.rs.hk2.locator.SomeService2;
 import org.serge.ws.rs.hk2.locator.SomeService3;
 import org.serge.ws.rs.hk2.locator.SomeService4;
+import org.serge.ws.rs.hk2.scope.IntegerRandomService;
+import org.serge.ws.rs.hk2.scope.RandomService;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class ServiceLocatorTest {
@@ -28,8 +33,9 @@ public class ServiceLocatorTest {
         ServiceLocator childLocator3 = ServiceLocatorFactory.getInstance().create("child3", childLocator1);
 
         ServiceLocatorUtilities.addClasses(parentLocator, SomeService1.class);
-        ServiceLocatorUtilities.addClasses(childLocator1, SomeService2.class);
+        ServiceLocatorUtilities.addClasses(childLocator1, SomeService2.class, IntegerRandomService.class);
         ServiceLocatorUtilities.addClasses(childLocator3, SomeService4.class);
+
         // Parent does not look into the chain just itself
         List<ServiceHandle<SomeContract>> parentServices = parentLocator.getAllServiceHandles(SomeContract.class);
         assertThat(parentServices.size(), is(1));
@@ -43,6 +49,11 @@ public class ServiceLocatorTest {
 
         List<ServiceHandle<SomeContract>> childServices3 = childLocator3.getAllServiceHandles(SomeContract.class);
         assertThat(childServices3.size(), is(3));
+        parentServices.stream().map(ServiceHandle::getService).forEach(SomeContract::doSomething);
+        childServices1.stream().map(ServiceHandle::getService).forEach(SomeContract::doSomething);
+        childServices2.stream().map(ServiceHandle::getService).forEach(SomeContract::doSomething);
+        childServices3.stream().map(ServiceHandle::getService).forEach(SomeContract::doSomething);
+
         // Destroying does not break the chain
         childLocator1.shutdown();
         ServiceLocatorFactory.getInstance().destroy(childLocator1);
@@ -64,7 +75,7 @@ public class ServiceLocatorTest {
         ServiceLocatorUtilities.addClasses(parentLocator, SomeService1.class);
         ServiceLocatorUtilities.addClasses(childLocator1, SomeService2.class);
         ServiceLocatorUtilities.addClasses(childLocator2, SomeService3.class);
-        ServiceLocatorUtilities.addClasses(childLocator3, SomeService4.class);
+        ServiceLocatorUtilities.addClasses(childLocator3, SomeService4.class, IntegerRandomService.class);
 
         ExtrasUtilities.bridgeServiceLocator(parentLocator, childLocator1);
         ExtrasUtilities.bridgeServiceLocator(childLocator1, childLocator2);
@@ -81,6 +92,12 @@ public class ServiceLocatorTest {
         // Cannot see sibling, and no child just itself
         List<ServiceHandle<SomeContract>> childServices3 = childLocator3.getAllServiceHandles(SomeContract.class);
         assertThat(childServices3.size(), is(1));
+
+        parentServices.stream().map(ServiceHandle::getService).forEach(SomeContract::doSomething);
+        childServices1.stream().map(ServiceHandle::getService).forEach(SomeContract::doSomething);
+        childServices2.stream().map(ServiceHandle::getService).forEach(SomeContract::doSomething);
+        childServices3.stream().map(ServiceHandle::getService).forEach(SomeContract::doSomething);
+
         // We can unbridge locators thus the link between breaks as it would be two separate locators
         ExtrasUtilities.unbridgeServiceLocator(parentLocator, childLocator1);
         // After breaking parent has just have 1 service it contains
@@ -101,7 +118,7 @@ public class ServiceLocatorTest {
         ServiceLocator parentLocator = ServiceLocatorFactory.getInstance().create("parent");
         ServiceLocator childLocator1 = ServiceLocatorFactory.getInstance().create("child1", parentLocator);
         ServiceLocator childLocator2 = ServiceLocatorFactory.getInstance().create("child2", childLocator1);
-        ServiceLocatorUtilities.addClasses(childLocator1, SomeService2.class);
+        ServiceLocatorUtilities.addClasses(childLocator1, SomeService2.class, IntegerRandomService.class);
         ServiceLocatorUtilities.addClasses(childLocator2, SomeService3.class);
 
         List<ServiceHandle<SomeContract>> parentServices = parentLocator.getAllServiceHandles(SomeContract.class);
@@ -113,8 +130,46 @@ public class ServiceLocatorTest {
         List<ServiceHandle<SomeContract>> childServices2 = childLocator2.getAllServiceHandles(SomeContract.class);
         assertThat(childServices2.size(), is(2));
 
+        parentServices.stream().map(ServiceHandle::getService).forEach(SomeContract::doSomething);
+        childServices1.stream().map(ServiceHandle::getService).forEach(SomeContract::doSomething);
+        childServices2.stream().map(ServiceHandle::getService).forEach(SomeContract::doSomething);
+
         ServiceLocatorFactory.getInstance().destroy(parentLocator);
         ServiceLocatorFactory.getInstance().destroy(childLocator1);
+        ServiceLocatorFactory.getInstance().destroy(childLocator2);
+    }
+
+    @Test
+    public void nestingCrossReference() {
+        ServiceLocator parentLocator = ServiceLocatorFactory.getInstance().create("parent");
+        ServiceLocator childLocator1 = ServiceLocatorFactory.getInstance().create("child1", parentLocator);
+        ServiceLocator childLocator2 = ServiceLocatorFactory.getInstance().create("child2", childLocator1);
+        ServiceLocatorUtilities.addClasses(childLocator1, SomeService2.class, IntegerRandomService.class);
+        ServiceLocatorUtilities.addClasses(childLocator2, SomeService3.class, SomeService4.class);
+
+        List<ServiceHandle<SomeContract>> parentServices = parentLocator.getAllServiceHandles(SomeContract.class);
+        assertThat(parentServices.size(), is(0));
+
+        List<ServiceHandle<SomeContract>> childServices1 = childLocator1.getAllServiceHandles(SomeContract.class);
+        assertThat(childServices1.size(), is(1));
+
+        List<ServiceHandle<SomeContract>> childServices2 = childLocator2.getAllServiceHandles(SomeContract.class);
+        assertThat(childServices2.size(), is(3));
+
+        parentServices.stream().map(ServiceHandle::getService).forEach(SomeContract::doSomething);
+        childServices1.stream().map(ServiceHandle::getService).forEach(SomeContract::doSomething);
+        childServices2.stream().map(ServiceHandle::getService).forEach(SomeContract::doSomething);
+
+        List<SomeContract> contracts = childServices2.stream().map(ServiceHandle::getService).collect(Collectors.toList());
+        contracts.forEach(SomeContract::doSomething);
+
+        childLocator1.shutdown();
+        ServiceLocatorFactory.getInstance().destroy(childLocator1);
+
+        contracts.forEach(SomeContract::doSomething);
+        assertThat(childLocator2.getService(RandomService.class), notNullValue());
+
+        ServiceLocatorFactory.getInstance().destroy(parentLocator);
         ServiceLocatorFactory.getInstance().destroy(childLocator2);
     }
 
@@ -123,7 +178,7 @@ public class ServiceLocatorTest {
         ServiceLocator parentLocator = ServiceLocatorFactory.getInstance().create("parent");
         ServiceLocator childLocator1 = ServiceLocatorFactory.getInstance().create("child1");
         ServiceLocatorUtilities.addClasses(parentLocator, SomeService1.class);
-        ServiceLocatorUtilities.addClasses(childLocator1, SomeService2.class);
+        ServiceLocatorUtilities.addClasses(childLocator1, SomeService2.class, IntegerRandomService.class);
 
         ExtrasUtilities.bridgeServiceLocator(parentLocator, childLocator1);
         ExtrasUtilities.bridgeServiceLocator(childLocator1, parentLocator);
@@ -133,6 +188,9 @@ public class ServiceLocatorTest {
 
         List<ServiceHandle<SomeContract>> childServices1 = childLocator1.getAllServiceHandles(SomeContract.class);
         assertThat(childServices1.size(), is(2));
+
+        parentServices.stream().map(ServiceHandle::getService).forEach(SomeContract::doSomething);
+        childServices1.stream().map(ServiceHandle::getService).forEach(SomeContract::doSomething);
 
         ServiceLocatorFactory.getInstance().destroy(parentLocator);
         ServiceLocatorFactory.getInstance().destroy(childLocator1);
@@ -145,7 +203,7 @@ public class ServiceLocatorTest {
         ServiceLocator childLocator2 = ServiceLocatorFactory.getInstance().create("child2");
         ServiceLocator childLocator3 = ServiceLocatorFactory.getInstance().create("child3");
         ServiceLocatorUtilities.addClasses(parentLocator, SomeService1.class);
-        ServiceLocatorUtilities.addClasses(childLocator1, SomeService2.class);
+        ServiceLocatorUtilities.addClasses(childLocator1, SomeService2.class, IntegerRandomService.class);
         ServiceLocatorUtilities.addClasses(childLocator2, SomeService3.class);
         ServiceLocatorUtilities.addClasses(childLocator3, SomeService4.class);
 
@@ -165,6 +223,12 @@ public class ServiceLocatorTest {
         // Cannot see sibling, and no child just itself
         List<ServiceHandle<SomeContract>> childServices3 = childLocator3.getAllServiceHandles(SomeContract.class);
         assertThat(childServices3.size(), is(4));
+
+        parentServices.stream().map(ServiceHandle::getService).forEach(SomeContract::doSomething);
+        childServices1.stream().map(ServiceHandle::getService).forEach(SomeContract::doSomething);
+        childServices2.stream().map(ServiceHandle::getService).forEach(SomeContract::doSomething);
+        childServices3.stream().map(ServiceHandle::getService).forEach(SomeContract::doSomething);
+
         // We can unbridge locators thus the link between breaks as it would be two separate locators
         ExtrasUtilities.unbridgeServiceLocator(parentLocator, childLocator1);
         // After breaking parent has just have 1 service it contains
@@ -178,6 +242,45 @@ public class ServiceLocatorTest {
         ServiceLocatorFactory.getInstance().destroy(childLocator1);
         ServiceLocatorFactory.getInstance().destroy(childLocator2);
         ServiceLocatorFactory.getInstance().destroy(childLocator3);
+    }
+
+    @Test
+    public void bridgingCrossReference() {
+        ServiceLocator parentLocator = ServiceLocatorFactory.getInstance().create("parent");
+        ServiceLocator childLocator1 = ServiceLocatorFactory.getInstance().create("child1");
+        ServiceLocator childLocator2 = ServiceLocatorFactory.getInstance().create("child2");
+        ExtrasUtilities.bridgeServiceLocator(parentLocator, childLocator1);
+        ExtrasUtilities.bridgeServiceLocator(childLocator1, childLocator2);
+        ExtrasUtilities.bridgeServiceLocator(childLocator2, parentLocator);
+
+        ServiceLocatorUtilities.addClasses(childLocator1, SomeService2.class, IntegerRandomService.class);
+        ServiceLocatorUtilities.addClasses(childLocator2, SomeService3.class, SomeService4.class);
+        ServiceLocatorUtilities.addClasses(childLocator1, IntegerRandomService.class);
+
+        List<ServiceHandle<SomeContract>> parentServices = parentLocator.getAllServiceHandles(SomeContract.class);
+        assertThat(parentServices.size(), is(3));
+
+        List<ServiceHandle<SomeContract>> childServices1 = childLocator1.getAllServiceHandles(SomeContract.class);
+        assertThat(childServices1.size(), is(3));
+
+        List<ServiceHandle<SomeContract>> childServices2 = childLocator2.getAllServiceHandles(SomeContract.class);
+        assertThat(childServices2.size(), is(3));
+
+        parentServices.stream().map(ServiceHandle::getService).forEach(SomeContract::doSomething);
+        childServices1.stream().map(ServiceHandle::getService).forEach(SomeContract::doSomething);
+        childServices2.stream().map(ServiceHandle::getService).forEach(SomeContract::doSomething);
+
+        List<SomeContract> contracts = childServices2.stream().map(ServiceHandle::getService).collect(Collectors.toList());
+        contracts.forEach(SomeContract::doSomething);
+        /*childLocator1.shutdown();
+        ServiceLocatorFactory.getInstance().destroy(childLocator1);*/
+        ExtrasUtilities.unbridgeServiceLocator(childLocator2, parentLocator);
+        contracts.forEach(SomeContract::doSomething);
+        assertThat(childLocator2.getService(RandomService.class), nullValue());
+
+        ServiceLocatorFactory.getInstance().destroy(parentLocator);
+        ServiceLocatorFactory.getInstance().destroy(childLocator1);
+        ServiceLocatorFactory.getInstance().destroy(childLocator2);
     }
 
 }
